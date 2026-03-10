@@ -1,0 +1,560 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+:root {
+  --bg-color: #0f111a;
+  --surface-color: rgba(25, 28, 41, 0.7);
+  --surface-hover: rgba(45, 49, 66, 0.8);
+  --surface-border: rgba(255, 255, 255, 0.08);
+
+  --text-primary: #f8f9fa;
+  --text-secondary: #adb5bd;
+  --text-tertiary: #6c757d;
+
+  --brand-color: #3b82f6;
+  --brand-hover: #2563eb;
+
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+  --success-color: #10b981;
+  --info-color: #3b82f6;
+
+  --affected-color: rgba(239, 68, 68, 0.8);
+  --safe-color: rgba(16, 185, 129, 0.8);
+
+  --font-main: "Inter", system-ui, -apple-system, sans-serif;
+
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  overflow: hidden; /* Prevent scrolling, map will take full height */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* App Layout */
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  position: relative;
+}
+
+/* Glassmorphism Panels */
+.glass-panel {
+  background: var(--surface-color);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid var(--surface-border);
+  border-left: 1px solid var(--surface-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  transition: transform var(--transition-smooth);
+}
+
+.left-panel {
+  width: 320px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.right-panel {
+  width: 360px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.center-panel {
+  flex-grow: 1;
+  position: relative;
+  background-color: #000;
+}
+
+/* Typography elements */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+p {
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.section-title {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+/* Panel Headers */
+.panel-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--surface-border);
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.03),
+    transparent
+  );
+}
+
+.panel-header h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.panel-content {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Form Elements */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-group label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+input[type="text"],
+select {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--surface-border);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+input[type="text"]:focus,
+select:focus,
+input[type="text"]:hover,
+select:hover {
+  border-color: var(--brand-color);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Select specifically needs styling for dark mode */
+select option {
+  background-color: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+/* Checkbox Style */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.checkbox-item input[type="checkbox"] {
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--text-tertiary);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  position: relative;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.checkbox-item input[type="checkbox"]:checked {
+  background: var(--brand-color);
+  border-color: var(--brand-color);
+}
+
+.checkbox-item input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 6px;
+  width: 4px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-item:hover input[type="checkbox"] {
+  border-color: var(--brand-hover);
+}
+
+.checkbox-item span {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+/* Button */
+.btn {
+  background: var(--brand-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.btn:hover {
+  background: var(--brand-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+/* Stat Cards */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.stat-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--surface-border);
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.stat-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.stat-card.full-width {
+  grid-column: span 2;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-value.danger {
+  color: var(--danger-color);
+}
+.stat-value.warning {
+  color: var(--warning-color);
+}
+.stat-value.success {
+  color: var(--success-color);
+}
+
+/* Damage Chart Bar */
+.damage-distribution {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.progress-bar-container {
+  height: 8px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+}
+
+.progress-segment {
+  height: 100%;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-segment.severe {
+  background: var(--danger-color);
+}
+.progress-segment.moderate {
+  background: var(--warning-color);
+}
+.progress-segment.minor {
+  background: var(--success-color);
+}
+.progress-segment.none {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.legend-color {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* Property Detail Card */
+.property-details {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  overflow: hidden;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.property-header {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--surface-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.property-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.property-id {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.property-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge.danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+.badge.warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+}
+.badge.success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+}
+.badge.info {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+}
+
+.property-meta {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.meta-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.meta-label {
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+}
+
+.meta-value {
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem 1rem;
+  opacity: 0.6;
+  gap: 1rem;
+}
+
+.empty-state svg {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.divider {
+  height: 1px;
+  background: var(--surface-border);
+  margin: 0.5rem 0;
+}
+
+/* ArcGIS Customizations */
+.esri-view {
+  outline: none !important;
+}
+
+.esri-ui {
+  z-index: 5 !important;
+}
+
+.esri-legend {
+  background-color: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+  backdrop-filter: blur(16px) !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--surface-border) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+}
+
+.esri-legend__layer-caption {
+  color: var(--text-secondary) !important;
+}
+
+.esri-widget {
+  background-color: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.esri-widget__button {
+  background-color: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.esri-widget__button:hover {
+  background-color: var(--surface-hover) !important;
+}
+
+.esri-popup__main-container {
+  background-color: var(--bg-color) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--surface-border) !important;
+}
+
+.esri-popup__button {
+  color: var(--text-primary) !important;
+}
+
+.esri-popup__header-title {
+  color: var(--text-primary) !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
