@@ -156,6 +156,16 @@ const RightPanel = ({ selectedFeature, stats }) => {
               </div>
 
               <div className="meta-row">
+                <span className="meta-label">Flood Exposure Status</span>
+                <span
+                  className={`meta-value ${selectedFeature.floodExposure === "Inside Flood Area" ? "danger" : "success"}`}
+                  style={{ fontWeight: 600 }}
+                >
+                  {selectedFeature.floodExposure || "Calculating..."}
+                </span>
+              </div>
+
+              <div className="meta-row">
                 <span className="meta-label">Area / Location</span>
                 <span
                   className="meta-value"

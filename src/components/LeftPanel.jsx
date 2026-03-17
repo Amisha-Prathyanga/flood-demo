@@ -68,6 +68,51 @@ const LeftPanel = ({ filters, onFilterChange }) => {
           </h3>
 
           <div className="input-group" style={{ marginBottom: "1.25rem" }}>
+            <label className="checkbox-item">
+              <input
+                type="checkbox"
+                checked={filters.showFloodExtent !== false}
+                onChange={(e) =>
+                  onFilterChange({ showFloodExtent: e.target.checked })
+                }
+              />
+              <span>Flood Extent (Kelani)</span>
+            </label>
+          </div>
+
+          <div className="input-group" style={{ marginBottom: "1.25rem" }}>
+            <label className="checkbox-item">
+              <input
+                type="checkbox"
+                checked={filters.showSrilankaFlood !== false}
+                onChange={(e) =>
+                  onFilterChange({ showSrilankaFlood: e.target.checked })
+                }
+              />
+              <span style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                <span>Flood Extent – Sri Lanka</span>
+                <span style={{ fontSize: "0.72rem", color: "var(--text-secondary)" }}>Nov 2025 · Multisensor</span>
+              </span>
+            </label>
+          </div>
+
+          <div className="input-group" style={{ marginBottom: "1.25rem" }}>
+            <label className="checkbox-item">
+              <input
+                type="checkbox"
+                checked={filters.showOsmBuildings !== false}
+                onChange={(e) =>
+                  onFilterChange({ showOsmBuildings: e.target.checked })
+                }
+              />
+              <span style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                <span>OSM Buildings</span>
+                <span style={{ fontSize: "0.72rem", color: "var(--text-secondary)" }}>Visible when zoomed in</span>
+              </span>
+            </label>
+          </div>
+
+          <div className="input-group" style={{ marginBottom: "1.25rem" }}>
             <label htmlFor="floodStatus">Flood Status</label>
             <select
               id="floodStatus"
@@ -110,16 +155,21 @@ const LeftPanel = ({ filters, onFilterChange }) => {
               className="stat-label"
               style={{ color: "var(--brand-color)" }}
             >
-              Demo Layer
+              Data Sources
             </span>
             <span
               style={{
-                fontSize: "0.875rem",
+                fontSize: "0.8rem",
                 color: "var(--text-secondary)",
                 marginTop: "4px",
+                lineHeight: 1.5,
               }}
             >
               Kelaniya River Flood 2025
+              <br />
+              <span style={{ fontSize: "0.72rem", opacity: 0.8 }}>
+                Cyclone Ditwah • Sri Lanka Nov 2025
+              </span>
             </span>
           </div>
         </div>

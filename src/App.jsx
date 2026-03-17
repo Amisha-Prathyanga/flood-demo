@@ -10,6 +10,9 @@ function App() {
     damageLevel: "all",
     floodStatus: "all",
     searchId: "",
+    showFloodExtent: true,
+    showSrilankaFlood: true,
+    showOsmBuildings: true,
   });
 
   // This will store stats generated from the layer view
