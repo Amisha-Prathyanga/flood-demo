@@ -1,39 +1,53 @@
 // File: src/components/MapWidget.jsx
 import React, {
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-  useImperativeHandle,
-  forwardRef,
+  useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef,
 } from "react";
 import Map from "@arcgis/core/Map";
 import MapView from "@arcgis/core/views/MapView";
+import Extent from "@arcgis/core/geometry/Extent";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
 import Graphic from "@arcgis/core/Graphic";
 import Point from "@arcgis/core/geometry/Point";
-import "@arcgis/core/assets/esri/themes/dark/main.css";
+import ScaleBar from "@arcgis/core/widgets/ScaleBar";
+import Legend from "@arcgis/core/widgets/Legend";
+import Expand from "@arcgis/core/widgets/Expand";
+import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
+import "@arcgis/core/assets/esri/themes/light/main.css";
 
-// 2025 Multisensor Flood Extent – Sri Lanka
-const SL_FLOOD_2025_URL =
-  "https://services1.arcgis.com/tMAq108b7itjkui5/arcgis/rest/services/Multisensors_20251126_20251202_FloodExtent_SriLanka/FeatureServer/1";
+const DSD_URL = "https://services1.arcgis.com/tMAq108b7itjkui5/arcgis/rest/services/SL_DSD_codes/FeatureServer/0";
+const SL_FLOOD_2025_URL = "https://services1.arcgis.com/tMAq108b7itjkui5/arcgis/rest/services/Multisensors_20251126_20251202_FloodExtent_SriLanka/FeatureServer/1";
+const PAST_FLOOD_URL = "https://services1.arcgis.com/tMAq108b7itjkui5/arcgis/rest/services/Pastfood_AllLayers/FeatureServer/15";
+const OSM_BUILDINGS_URL = "https://services-ap1.arcgis.com/iA7fZQOnjY9D67Zx/arcgis/rest/services/OSM_AS_Buildings/FeatureServer/0";
 
-// Past Flood Events 2016/2018
-const PAST_FLOOD_URL =
-  "https://services1.arcgis.com/tMAq108b7itjkui5/arcgis/rest/services/Pastfood_AllLayers/FeatureServer/15";
-
-// OSM Asia Buildings
-const OSM_BUILDINGS_URL =
-  "https://services-ap1.arcgis.com/iA7fZQOnjY9D67Zx/arcgis/rest/services/OSM_AS_Buildings/FeatureServer/0";
+const SL_EXTENT = new Extent({
+  xmin: 79.652, ymin: 5.917,
+  xmax: 81.879, ymax: 9.835,
+  spatialReference: { wkid: 4326 },
+});
 
 const PIN_SYMBOL = {
-  type: "simple-marker",
-  style: "circle",
-  color: [255, 255, 255, 1],
-  size: "12px",
-  outline: { color: [239, 68, 68, 1], width: 3 },
+  type: "simple-marker", style: "circle",
+  color: [255, 255, 255, 1], size: "13px",
+  outline: { color: [40, 79, 161, 1], width: 3 },
 };
+
+const LEGEND_GROUPS = [
+  { title: "DSD Boundaries", items: [{ label: "DS Division", fill: "rgba(173,216,230,0.15)", stroke: "rgba(60,100,160,0.85)" }] },
+  { title: "Flood 2025", items: [{ label: "Flood area", fill: "rgba(30,80,200,0.35)", stroke: "rgba(59,130,246,0.9)" }] },
+  { title: "Past Flood Events", items: [{ label: "Flood area", fill: "rgba(251,146,60,0.30)", stroke: "rgba(234,88,12,0.8)" }] },
+  {
+    title: "Buildings",
+    items: [
+      { label: "house", fill: "rgb(237,81,81)", stroke: "#bbb" },
+      { label: "residential", fill: "rgb(20,158,206)", stroke: "#bbb" },
+      { label: "school", fill: "rgb(167,198,54)", stroke: "#bbb" },
+      { label: "hospital", fill: "rgb(183,129,74)", stroke: "#bbb" },
+      { label: "other", fill: "rgb(200,200,200)", stroke: "#bbb" },
+    ],
+  },
+  { title: "Pin", items: [{ label: "Selected point", fill: "#fff", stroke: "rgb(40,79,161)", circle: true }] },
+];
 
 const MapWidget = forwardRef(({ filters, onPointAnalysis }, ref) => {
   const mapDiv = useRef(null);
@@ -41,36 +55,33 @@ const MapWidget = forwardRef(({ filters, onPointAnalysis }, ref) => {
   const layerRef = useRef({});
   const pinLayerRef = useRef(null);
 
-  // Draggable legend state
-  const [legendPos, setLegendPos] = useState({ x: 16, y: 16 });
+  const [legendPos, setLegendPos] = useState({ bottom: 80, right: 10 });
   const [legendCollapsed, setLegendCollapsed] = useState(false);
-  const dragStart = useRef(null);
+  const dragging = useRef(null);
 
-  const onLegendMouseDown = useCallback(
-    (e) => {
-      e.preventDefault();
-      dragStart.current = {
-        mx: e.clientX,
-        my: e.clientY,
-        ox: legendPos.x,
-        oy: legendPos.y,
-      };
-      const onMove = (ev) => {
-        const dx = ev.clientX - dragStart.current.mx;
-        const dy = ev.clientY - dragStart.current.my;
-        setLegendPos({ x: dragStart.current.ox + dx, y: dragStart.current.oy + dy });
-      };
-      const onUp = () => {
-        window.removeEventListener("mousemove", onMove);
-        window.removeEventListener("mouseup", onUp);
-      };
-      window.addEventListener("mousemove", onMove);
-      window.addEventListener("mouseup", onUp);
-    },
-    [legendPos]
-  );
+  const onLegendMouseDown = useCallback((e) => {
+    e.preventDefault();
+    const el = e.currentTarget.closest(".map-legend");
+    const rect = el.getBoundingClientRect();
+    const parent = el.parentElement.getBoundingClientRect();
+    dragging.current = {
+      mx: e.clientX, my: e.clientY,
+      ox: rect.left - parent.left,
+      oy: rect.top - parent.top,
+    };
+    const onMove = (ev) => {
+      const dx = ev.clientX - dragging.current.mx;
+      const dy = ev.clientY - dragging.current.my;
+      setLegendPos({ left: dragging.current.ox + dx, top: dragging.current.oy + dy, right: "auto", bottom: "auto" });
+    };
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }, []);
 
-  // Expose goToCoords for parent (coordinate search)
   useImperativeHandle(ref, () => ({
     goToCoords: (lat, lng) => {
       if (viewRef.current) {
@@ -80,258 +91,130 @@ const MapWidget = forwardRef(({ filters, onPointAnalysis }, ref) => {
     },
   }));
 
-  // Drop pin + run flood queries at a given WGS84 lng/lat
   const dropPinAndQuery = useCallback(async (lng, lat) => {
     const pinLayer = pinLayerRef.current;
     if (!pinLayer) return;
-
-    // Clear old pin
     pinLayer.removeAll();
-
     const point = new Point({ longitude: lng, latitude: lat, spatialReference: { wkid: 4326 } });
-
-    // Drop pin graphic
-    pinLayer.add(
-      new Graphic({
-        geometry: point,
-        symbol: PIN_SYMBOL,
-      })
-    );
-
-    // Notify parent: loading
+    pinLayer.add(new Graphic({ geometry: point, symbol: PIN_SYMBOL }));
     onPointAnalysis({ lat, lng, loading: true });
-
     try {
-      const flood2025Layer = layerRef.current.flood2025;
-      const pastFloodLayer = layerRef.current.pastFlood;
-
-      const makeQuery = (layer) => {
+      const makeQ = (layer) => {
         const q = layer.createQuery();
-        q.geometry = point;
-        q.spatialRelationship = "intersects";
-        // Optimized: just get the count instead of full geometries/attributes
+        q.geometry = point; q.spatialRelationship = "intersects";
         return layer.queryFeatureCount(q);
       };
-
-      const [count2025, countPast] = await Promise.all([
-        makeQuery(flood2025Layer),
-        makeQuery(pastFloodLayer),
+      const [c2025, cPast] = await Promise.all([
+        makeQ(layerRef.current.flood2025),
+        makeQ(layerRef.current.pastFlood),
       ]);
-
-      onPointAnalysis({
-        lat,
-        lng,
-        loading: false,
-        flood2025: count2025 > 0,
-        pastFlood: countPast > 0,
-        pastFloodAttrs: [],
-      });
+      onPointAnalysis({ lat, lng, loading: false, flood2025: c2025 > 0, pastFlood: cPast > 0 });
     } catch (err) {
-      console.error("Flood query failed:", err);
+      console.error(err);
       onPointAnalysis({ lat, lng, loading: false, error: true });
     }
   }, [onPointAnalysis]);
 
-  // Initialize Map
   useEffect(() => {
     if (!mapDiv.current) return;
 
-    // Pin graphics layer
     const pinLayer = new GraphicsLayer({ listMode: "hide" });
     pinLayerRef.current = pinLayer;
 
-    // 2025 Flood Extent layer
+    const dsdLayer = new FeatureLayer({
+      url: DSD_URL, title: "DSD Boundaries",
+      popupEnabled: false, opacity: 0.5,
+      renderer: { type: "simple", symbol: { type: "simple-fill", color: [173, 216, 230, 0], outline: { color: [60, 100, 160, 0.85], width: 1 } } },
+    });
     const flood2025Layer = new FeatureLayer({
-      url: SL_FLOOD_2025_URL,
-      outFields: [], // Optimized: only fetch what the renderer needs
-      popupEnabled: false,
-      title: "Flood Extent 2025",
-      renderer: {
-        type: "simple",
-        symbol: {
-          type: "simple-fill",
-          color: [30, 80, 200, 0.38],
-          outline: { color: [59, 130, 246, 0.85], width: 1.2 },
-        },
-      },
+      url: SL_FLOOD_2025_URL, title: "Flood Extent 2025",
+      outFields: [], popupEnabled: false,
+      renderer: { type: "simple", symbol: { type: "simple-fill", color: [30, 80, 200, 0.35], outline: { color: [59, 130, 246, 0.9], width: 1.2 } } },
     });
-
-    // Past Flood Events layer (2016/2018)
     const pastFloodLayer = new FeatureLayer({
-      url: PAST_FLOOD_URL,
-      outFields: [], // Optimized
-      popupEnabled: false,
-      title: "Past Flood Events (2016/2018)",
-      renderer: {
-        type: "simple",
-        symbol: {
-          type: "simple-fill",
-          color: [251, 146, 60, 0.32],
-          outline: { color: [234, 88, 12, 0.8], width: 1 },
-        },
-      },
+      url: PAST_FLOOD_URL, title: "Past Flood Events (2016/2018)",
+      outFields: [], popupEnabled: false,
+      renderer: { type: "simple", symbol: { type: "simple-fill", color: [251, 146, 60, 0.30], outline: { color: [234, 88, 12, 0.8], width: 1 } } },
     });
-
-    // OSM Buildings
     const osmBuildingsLayer = new FeatureLayer({
-      url: OSM_BUILDINGS_URL,
-      outFields: [], // Optimized: API automatically includes 'building' for rendering
-      popupEnabled: false,
-      title: "OSM Buildings",
-      minScale: 9475,
+      url: OSM_BUILDINGS_URL, title: "OSM Buildings",
+      outFields: [], popupEnabled: false, minScale: 9475,
     });
 
-    layerRef.current = {
-      flood2025: flood2025Layer,
-      pastFlood: pastFloodLayer,
-      osmBuildings: osmBuildingsLayer,
-    };
+    layerRef.current = { dsd: dsdLayer, flood2025: flood2025Layer, pastFlood: pastFloodLayer, osmBuildings: osmBuildingsLayer };
 
     const map = new Map({
-      basemap: "dark-gray-vector",
-      // Past flood at bottom, 2025 flood on top, OSM buildings above both, pin on top
-      layers: [pastFloodLayer, flood2025Layer, osmBuildingsLayer, pinLayer],
+      basemap: filters.basemap || "gray-vector",
+      layers: [dsdLayer, pastFloodLayer, flood2025Layer, osmBuildingsLayer, pinLayer],
     });
 
     const view = new MapView({
-      container: mapDiv.current,
-      map,
-      center: [80.7, 7.8], // Sri Lanka centre
-      zoom: 8,
-      padding: { left: 320, right: 360 },
+      container: mapDiv.current, map,
+      extent: SL_EXTENT,
       ui: { components: ["zoom", "compass"] },
     });
     viewRef.current = view;
 
-    // Click handler: drop pin + query
     view.when(() => {
-      view.on("click", (event) => {
-        const { longitude, latitude } = event.mapPoint;
-        dropPinAndQuery(longitude, latitude);
-      });
+      view.on("click", e => dropPinAndQuery(e.mapPoint.longitude, e.mapPoint.latitude));
+
+      // ScaleBar
+      view.ui.add(new ScaleBar({ view, unit: "metric", style: "line" }), "bottom-left");
+
+      // Legend expand
+      view.ui.add(new Expand({
+        view, content: new Legend({ view, style: "card" }),
+        expandIcon: "legend", expandTooltip: "Show Legend", expanded: false,
+      }), "bottom-right");
+
+      // Basemap gallery expand
+      view.ui.add(new Expand({
+        view, content: new BasemapGallery({ view }),
+        expandIcon: "basemap", expandTooltip: "Basemap Gallery", expanded: false,
+      }), "top-right");
     });
 
     return () => view.destroy();
-  }, []);
+  }, []); // eslint-disable-line
 
-  // Layer visibility toggles
   useEffect(() => {
-    const { flood2025, pastFlood, osmBuildings } = layerRef.current;
+    const { dsd, flood2025, pastFlood, osmBuildings } = layerRef.current;
     if (!flood2025) return;
+    if (dsd) dsd.visible = filters.showDsd !== false;
     flood2025.visible = filters.showFlood2025 !== false;
     pastFlood.visible = filters.showPastFlood !== false;
     osmBuildings.visible = filters.showOsmBuildings !== false;
   }, [filters]);
 
-  // Basemap switcher
   useEffect(() => {
-    if (viewRef.current && filters.basemap) {
+    if (viewRef.current?.map && filters.basemap) {
       viewRef.current.map.basemap = filters.basemap;
     }
   }, [filters.basemap]);
 
-  // Legend definition
-  const legendItems = [
-    {
-      title: "Flood Extent 2025 (Nov)",
-      items: [
-        { label: "Flood area", color: "rgba(30,80,200,0.38)", border: "rgba(59,130,246,0.85)" },
-      ],
-    },
-    {
-      title: "Past Flood Events (2016/2018)",
-      items: [
-        { label: "Flood area", color: "rgba(251,146,60,0.32)", border: "rgba(234,88,12,0.8)" },
-      ],
-    },
-    {
-      title: "OSM Buildings",
-      items: [
-        { label: "house",       color: "rgb(237,81,81)",   border: "#999" },
-        { label: "residential", color: "rgb(20,158,206)",  border: "#999" },
-        { label: "school",      color: "rgb(167,198,54)",  border: "#999" },
-        { label: "hospital",    color: "rgb(183,129,74)",  border: "#999" },
-        { label: "public",      color: "rgb(107,107,214)", border: "#999" },
-        { label: "other",       color: "rgb(170,170,170)", border: "#999" },
-      ],
-    },
-    {
-      title: "Pin",
-      items: [
-        { label: "Selected point", color: "#fff", border: "rgb(239,68,68)", circle: true },
-      ],
-    },
-  ];
-
   return (
-    <div
-      className="map-view"
-      ref={mapDiv}
-      style={{ width: "100%", height: "100%", position: "relative" }}
-    >
-      {/* Draggable Legend */}
-      <div
-        style={{
-          position: "absolute",
-          left: legendPos.x,
-          top: legendPos.y,
-          zIndex: 10,
-          background: "rgba(15,23,42,0.90)",
-          backdropFilter: "blur(12px)",
-          border: "1px solid rgba(255,255,255,0.10)",
-          borderRadius: "10px",
-          minWidth: "190px",
-          maxWidth: "230px",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-          userSelect: "none",
-          fontSize: "12px",
-          color: "#e2e8f0",
-        }}
-      >
-        <div
-          onMouseDown={onLegendMouseDown}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "8px 12px",
-            cursor: "grab",
-            borderBottom: legendCollapsed ? "none" : "1px solid rgba(255,255,255,0.08)",
-            borderRadius: legendCollapsed ? "10px" : "10px 10px 0 0",
-            background: "rgba(59,130,246,0.15)",
-          }}
-        >
-          <span style={{ fontWeight: 600, fontSize: "11px", letterSpacing: "0.05em", textTransform: "uppercase", color: "#93c5fd" }}>
-            ⋮⋮ Legend
-          </span>
-          <button
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={() => setLegendCollapsed((c) => !c)}
-            style={{ background: "transparent", border: "none", color: "#93c5fd", cursor: "pointer", fontSize: "14px", lineHeight: 1, padding: "0 2px" }}
-            title={legendCollapsed ? "Expand" : "Collapse"}
-          >
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      <div ref={mapDiv} style={{ width: "100%", height: "100%" }} />
+
+      {/* Custom floating legend */}
+      <div className="map-legend" style={legendPos}>
+        <div className="lg-header" onMouseDown={onLegendMouseDown}>
+          <span className="lg-title">⠿ Legend</span>
+          <button className="lg-toggle" onMouseDown={e => e.stopPropagation()} onClick={() => setLegendCollapsed(c => !c)}>
             {legendCollapsed ? "▲" : "▼"}
           </button>
         </div>
-
         {!legendCollapsed && (
-          <div style={{ padding: "10px 12px", display: "flex", flexDirection: "column", gap: "10px" }}>
-            {legendItems.map((group) => (
-              <div key={group.title}>
-                <div style={{ fontWeight: 600, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", marginBottom: "5px" }}>
-                  {group.title}
-                </div>
-                {group.items.map((item) => (
-                  <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "7px", marginBottom: "3px" }}>
-                    <div style={{
-                      width: item.circle ? "12px" : "18px",
-                      height: "12px",
-                      borderRadius: item.circle ? "50%" : "3px",
-                      background: item.color,
-                      border: `1.5px solid ${item.border}`,
-                      flexShrink: 0,
-                    }} />
-                    <span style={{ color: "#cbd5e1", fontSize: "11px" }}>{item.label}</span>
+          <div className="lg-body">
+            {LEGEND_GROUPS.map(g => (
+              <div key={g.title}>
+                <div className="lg-group-title">{g.title}</div>
+                {g.items.map(item => (
+                  <div key={item.label} className="lg-row">
+                    {item.circle
+                      ? <div className="lg-circle" style={{ background: item.fill, borderColor: item.stroke }} />
+                      : <div className="lg-swatch" style={{ background: item.fill, borderColor: item.stroke }} />}
+                    <span className="lg-lbl">{item.label}</span>
                   </div>
                 ))}
               </div>
