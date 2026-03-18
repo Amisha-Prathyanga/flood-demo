@@ -1,197 +1,173 @@
 import React from "react";
-import { FiHome, FiInfo, FiActivity, FiMapPin } from "react-icons/fi";
+import { FiMapPin, FiActivity, FiAlertTriangle, FiCheckCircle, FiLoader } from "react-icons/fi";
 import { BiLayer } from "react-icons/bi";
 
-const RightPanel = ({ selectedFeature, stats }) => {
-  // Render damage distribution chart safely
-  const renderChart = () => {
-    const { total = 0, severe = 0, moderate = 0, minor = 0 } = stats || {};
-    const hasData = total > 0;
+const RISK_LEVELS = {
+  both:    { label: "Repeatedly Flooded",   color: "#ef4444", bg: "rgba(239,68,68,0.12)",   icon: "🔴" },
+  only2025:{ label: "Flooded in 2025 Only", color: "#f97316", bg: "rgba(249,115,22,0.12)",  icon: "🟠" },
+  onlyPast:{ label: "Flooded in Past Events Only", color: "#eab308", bg: "rgba(234,179,8,0.12)", icon: "🟡" },
+  none:    { label: "No Flood Record Found",color: "#22c55e", bg: "rgba(34,197,94,0.12)",   icon: "🟢" },
+};
 
-    // Safely calculate percentages
-    const severePct = hasData ? (severe / total) * 100 : 0;
-    const moderatePct = hasData ? (moderate / total) * 100 : 0;
-    const minorPct = hasData ? (minor / total) * 100 : 0;
+const YearBadge = ({ label, affected, loading }) => {
+  const color = affected ? "#ef4444" : "#22c55e";
+  const bg    = affected ? "rgba(239,68,68,0.12)" : "rgba(34,197,94,0.10)";
+  const text  = loading ? "Checking…" : affected ? "✓ Affected" : "✗ Not Affected";
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "10px 14px",
+        borderRadius: "8px",
+        background: loading ? "rgba(255,255,255,0.05)" : bg,
+        border: `1px solid ${loading ? "rgba(255,255,255,0.08)" : color + "55"}`,
+        marginBottom: "8px",
+      }}
+    >
+      <span style={{ fontWeight: 600, fontSize: "0.875rem", color: "var(--text-primary)" }}>{label}</span>
+      <span
+        style={{
+          fontWeight: 700,
+          fontSize: "0.8rem",
+          color: loading ? "var(--text-secondary)" : color,
+          display: "flex",
+          alignItems: "center",
+          gap: "4px",
+        }}
+      >
+        {loading ? <FiLoader style={{ animation: "spin 1s linear infinite" }} /> : null}
+        {text}
+      </span>
+    </div>
+  );
+};
 
-    // Remaining is "No damage" or unknown
-    const remainingPct = 100 - (severePct + moderatePct + minorPct);
-
-    return (
-      <div className="damage-distribution">
-        <div className="progress-bar-container">
-          <div
-            className="progress-segment severe"
-            style={{ width: `${severePct}%` }}
-          ></div>
-          <div
-            className="progress-segment moderate"
-            style={{ width: `${moderatePct}%` }}
-          ></div>
-          <div
-            className="progress-segment minor"
-            style={{ width: `${minorPct}%` }}
-          ></div>
-          <div
-            className="progress-segment none"
-            style={{ width: `${remainingPct}%` }}
-          ></div>
-        </div>
-        <div className="chart-legend">
-          <div className="legend-item">
-            <div className="legend-color severe"></div>Severe ({severe})
-          </div>
-          <div className="legend-item">
-            <div className="legend-color moderate"></div>Moderate ({moderate})
-          </div>
-          <div className="legend-item">
-            <div className="legend-color minor"></div>Minor ({minor})
-          </div>
-        </div>
-      </div>
-    );
+const RightPanel = ({ pointAnalysis }) => {
+  const getRiskLevel = () => {
+    if (!pointAnalysis || pointAnalysis.loading || pointAnalysis.error) return null;
+    if (pointAnalysis.flood2025 && pointAnalysis.pastFlood) return RISK_LEVELS.both;
+    if (pointAnalysis.flood2025) return RISK_LEVELS.only2025;
+    if (pointAnalysis.pastFlood) return RISK_LEVELS.onlyPast;
+    return RISK_LEVELS.none;
   };
 
-  // Safe attribute rendering for property details
-  const getBadgeClass = (status, category) => {
-    if (
-      status?.toLowerCase() === "affected" ||
-      status?.toLowerCase() === "yes"
-    ) {
-      if (category?.toLowerCase() === "severe") return "danger";
-      if (category?.toLowerCase() === "moderate") return "warning";
-      return "danger";
-    }
-    return "success";
-  };
+  const risk = getRiskLevel();
 
   return (
     <div className="glass-panel right-panel">
       <div className="panel-header">
         <h2>
-          <FiActivity /> Dashboard Statistics
-        </h2>
-      </div>
-
-      <div className="panel-content" style={{ paddingBottom: "0" }}>
-        <div className="stats-grid">
-          <div className="stat-card full-width">
-            <span className="stat-label">
-              <FiHome /> Total Buildings in View
-            </span>
-            <span className="stat-value">
-              {stats?.total?.toLocaleString() || 0}
-            </span>
-          </div>
-
-          <div className="stat-card">
-            <span
-              className="stat-label"
-              style={{ color: "var(--danger-color)" }}
-            >
-              Affected
-            </span>
-            <span className="stat-value danger">
-              {stats?.affected?.toLocaleString() || 0}
-            </span>
-          </div>
-
-          <div className="stat-card">
-            <span
-              className="stat-label"
-              style={{ color: "var(--danger-color)" }}
-            >
-              Severe Damage
-            </span>
-            <span className="stat-value danger">
-              {stats?.severe?.toLocaleString() || 0}
-            </span>
-          </div>
-        </div>
-
-        <div className="section" style={{ marginTop: "0.5rem" }}>
-          <h3 className="section-title">Damage Distribution</h3>
-          {renderChart()}
-        </div>
-      </div>
-
-      <div
-        className="panel-header"
-        style={{
-          marginTop: "auto",
-          borderTop: "1px solid var(--surface-border)",
-        }}
-      >
-        <h2>
-          <FiInfo /> Property Details
+          <FiActivity /> Flood History
         </h2>
       </div>
 
       <div className="panel-content">
-        {selectedFeature ? (
-          <div className="property-details">
-            <div className="property-header">
-              <div className="property-title">
-                <span className="property-id">
-                  ID: {selectedFeature.OBJECTID || "Unknown"}
-                </span>
-                <span className="property-name">
-                  {selectedFeature.building ||
-                    selectedFeature.name ||
-                    "Building"}
-                </span>
-              </div>
-              <span
-                className={`badge ${selectedFeature.gridcode === 2 ? "danger" : "success"}`}
-              >
-                {selectedFeature.gridcode === 2 ? "Severe Damage" : "No Damage"}
-              </span>
-            </div>
-
-            <div className="property-meta">
-              <div className="meta-row">
-                <span className="meta-label">Flood Status</span>
-                <span className="meta-value">
-                  {selectedFeature.gridcode === 2 ? "Affected" : "Not Affected"}
-                </span>
-              </div>
-
-              <div className="meta-row">
-                <span className="meta-label">Flood Exposure Status</span>
-                <span
-                  className={`meta-value ${selectedFeature.floodExposure === "Inside Flood Area" ? "danger" : "success"}`}
-                  style={{ fontWeight: 600 }}
-                >
-                  {selectedFeature.floodExposure || "Calculating..."}
-                </span>
-              </div>
-
-              <div className="meta-row">
-                <span className="meta-label">Area / Location</span>
-                <span
-                  className="meta-value"
-                  style={{ display: "flex", alignItems: "center", gap: "4px" }}
-                >
-                  <FiMapPin />{" "}
-                  {selectedFeature.addr_city ||
-                    selectedFeature.addr_full ||
-                    "Kelaniya"}
-                </span>
-              </div>
-            </div>
-          </div>
-        ) : (
+        {!pointAnalysis ? (
+          /* Empty state */
           <div className="empty-state">
             <BiLayer />
             <div>
               <p style={{ fontWeight: 500, color: "var(--text-primary)" }}>
-                No Property Selected
+                No Location Selected
               </p>
               <p style={{ fontSize: "0.875rem", marginTop: "4px" }}>
-                Click on a building on the map to view detailed insurance and
-                damage information.
+                Click anywhere on the map, or enter coordinates in the left panel to check flood history.
               </p>
             </div>
           </div>
+        ) : pointAnalysis.error ? (
+          <div className="empty-state" style={{ color: "var(--danger-color)" }}>
+            <FiAlertTriangle style={{ fontSize: "2rem" }} />
+            <div>
+              <p style={{ fontWeight: 500 }}>Query Failed</p>
+              <p style={{ fontSize: "0.875rem", marginTop: "4px" }}>
+                Could not retrieve flood data. Please try again.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Coordinates */}
+            <div className="stat-card full-width" style={{ marginBottom: "1rem" }}>
+              <span className="stat-label">
+                <FiMapPin style={{ display: "inline", marginRight: "4px" }} />
+                Selected Location
+              </span>
+              <span style={{ fontFamily: "monospace", fontSize: "0.85rem", color: "var(--text-primary)", marginTop: "4px" }}>
+                {pointAnalysis.lat?.toFixed(5)}° N, {pointAnalysis.lng?.toFixed(5)}° E
+              </span>
+            </div>
+
+            {/* Year-by-year comparison */}
+            <div className="section">
+              <h3 className="section-title">Flood Exposure by Year</h3>
+
+              <YearBadge
+                label="2025 (Nov) — Multisensor"
+                affected={pointAnalysis.flood2025}
+                loading={pointAnalysis.loading}
+              />
+              <YearBadge
+                label="2016 / 2018 — Past Events"
+                affected={pointAnalysis.pastFlood}
+                loading={pointAnalysis.loading}
+              />
+            </div>
+
+            {/* Risk summary */}
+            {risk && !pointAnalysis.loading && (
+              <div className="section" style={{ marginTop: "1rem" }}>
+                <h3 className="section-title">Combined Risk Assessment</h3>
+                <div
+                  style={{
+                    padding: "14px 16px",
+                    borderRadius: "10px",
+                    background: risk.bg,
+                    border: `1px solid ${risk.color}55`,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                  }}
+                >
+                  <span style={{ fontSize: "1.5rem" }}>{risk.icon}</span>
+                  <div>
+                    <div style={{ fontWeight: 700, color: risk.color, fontSize: "0.95rem" }}>
+                      {risk.label}
+                    </div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginTop: "3px" }}>
+                      {risk === RISK_LEVELS.both
+                        ? "This area has been affected by flooding in multiple periods."
+                        : risk === RISK_LEVELS.only2025
+                        ? "This area was affected by the November 2025 floods only."
+                        : risk === RISK_LEVELS.onlyPast
+                        ? "This area was affected in past events (2016/2018) but not in 2025."
+                        : "This point falls outside all recorded flood extents."}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Loading spinner overlay for risk section */}
+            {pointAnalysis.loading && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  color: "var(--text-secondary)",
+                  fontSize: "0.85rem",
+                  marginTop: "1rem",
+                  padding: "0 4px",
+                }}
+              >
+                <FiLoader style={{ animation: "spin 1s linear infinite" }} />
+                Querying flood layers…
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

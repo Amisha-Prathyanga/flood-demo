@@ -5,55 +5,49 @@ import LeftPanel from "./components/LeftPanel";
 import RightPanel from "./components/RightPanel";
 
 function App() {
-  const [selectedFeature, setSelectedFeature] = useState(null);
+  const mapRef = useRef(null);
+
+  const [pointAnalysis, setPointAnalysis] = useState(null);
+
   const [filters, setFilters] = useState({
-    damageLevel: "all",
-    floodStatus: "all",
-    searchId: "",
-    showFloodExtent: true,
-    showSrilankaFlood: true,
+    showFlood2025: true,
+    showPastFlood: true,
     showOsmBuildings: true,
+    basemap: "dark-gray-vector",
   });
-
-  // This will store stats generated from the layer view
-  const [stats, setStats] = useState({
-    total: 0,
-    affected: 0,
-    severe: 0,
-    moderate: 0,
-    minor: 0,
-  });
-
-  const layerViewRef = useRef(null);
 
   const handleFilterChange = (newFilters) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
-  const handleFeatureSelect = (attributes) => {
-    setSelectedFeature(attributes);
+  const handlePointAnalysis = (data) => {
+    setPointAnalysis(data);
   };
 
-  const handleStatsUpdate = (newStats) => {
-    setStats(newStats);
+  // Called from LeftPanel when user submits coordinates
+  const handleCoordSearch = ({ lat, lng }) => {
+    if (mapRef.current?.goToCoords) {
+      mapRef.current.goToCoords(lat, lng);
+    }
   };
 
   return (
     <div className="app-container">
-      <LeftPanel filters={filters} onFilterChange={handleFilterChange} />
+      <LeftPanel
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onCoordSearch={handleCoordSearch}
+      />
 
       <div className="center-panel">
         <MapWidget
+          ref={mapRef}
           filters={filters}
-          onFeatureSelect={handleFeatureSelect}
-          onStatsUpdate={handleStatsUpdate}
-          onLayerViewReady={(layerView) => {
-            layerViewRef.current = layerView;
-          }}
+          onPointAnalysis={handlePointAnalysis}
         />
       </div>
 
-      <RightPanel selectedFeature={selectedFeature} stats={stats} />
+      <RightPanel pointAnalysis={pointAnalysis} />
     </div>
   );
 }

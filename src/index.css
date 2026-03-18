@@ -148,6 +148,7 @@ p {
 }
 
 input[type="text"],
+input[type="number"],
 select {
   width: 100%;
   background: rgba(0, 0, 0, 0.2);
@@ -162,8 +163,10 @@ select {
 }
 
 input[type="text"]:focus,
+input[type="number"]:focus,
 select:focus,
 input[type="text"]:hover,
+input[type="number"]:hover,
 select:hover {
   border-color: var(--brand-color);
   background: rgba(0, 0, 0, 0.3);
@@ -465,6 +468,15 @@ select option {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
