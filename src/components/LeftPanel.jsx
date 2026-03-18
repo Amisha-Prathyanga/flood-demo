@@ -1,3 +1,4 @@
+// File: src/components/LeftPanel.jsx
 import React, { useState } from "react";
 import { FiSearch, FiLayers, FiMapPin } from "react-icons/fi";
 

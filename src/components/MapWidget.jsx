@@ -1,3 +1,4 @@
+// File: src/components/MapWidget.jsx
 import React, {
   useEffect,
   useRef,

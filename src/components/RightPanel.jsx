@@ -1,3 +1,4 @@
+// File: src/components/RightPanel.jsx
 import React from "react";
 import { FiMapPin, FiActivity, FiAlertTriangle, FiCheckCircle, FiLoader } from "react-icons/fi";
 import { BiLayer } from "react-icons/bi";

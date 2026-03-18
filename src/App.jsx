@@ -1,3 +1,4 @@
+// File: src/App.jsx
 import { useState, useRef } from "react";
 import "./index.css";
 import MapWidget from "./components/MapWidget";
