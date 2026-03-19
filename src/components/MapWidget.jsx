@@ -54,8 +54,7 @@ const MapWidget = forwardRef(({ filters, onPointAnalysis }, ref) => {
   const viewRef = useRef(null);
   const layerRef = useRef({});
   const pinLayerRef = useRef(null);
-
-  const [legendPos, setLegendPos] = useState({ bottom: 80, right: 10 });
+  const [legendPos, setLegendPos] = useState({ top: 200, left: 15 });
   const [legendCollapsed, setLegendCollapsed] = useState(false);
   const dragging = useRef(null);
 
@@ -82,15 +81,6 @@ const MapWidget = forwardRef(({ filters, onPointAnalysis }, ref) => {
     window.addEventListener("mouseup", onUp);
   }, []);
 
-  useImperativeHandle(ref, () => ({
-    goToCoords: (lat, lng) => {
-      if (viewRef.current) {
-        viewRef.current.goTo({ center: [lng, lat], zoom: 14 });
-        dropPinAndQuery(lng, lat);
-      }
-    },
-  }));
-
   const dropPinAndQuery = useCallback(async (lng, lat) => {
     const pinLayer = pinLayerRef.current;
     if (!pinLayer) return;
@@ -114,6 +104,15 @@ const MapWidget = forwardRef(({ filters, onPointAnalysis }, ref) => {
       onPointAnalysis({ lat, lng, loading: false, error: true });
     }
   }, [onPointAnalysis]);
+
+  useImperativeHandle(ref, () => ({
+    goToCoords: (lat, lng) => {
+      if (viewRef.current) {
+        viewRef.current.goTo({ center: [lng, lat], zoom: 14 });
+        dropPinAndQuery(lng, lat);
+      }
+    },
+  }));
 
   useEffect(() => {
     if (!mapDiv.current) return;
@@ -144,7 +143,7 @@ const MapWidget = forwardRef(({ filters, onPointAnalysis }, ref) => {
     layerRef.current = { dsd: dsdLayer, flood2025: flood2025Layer, pastFlood: pastFloodLayer, osmBuildings: osmBuildingsLayer };
 
     const map = new Map({
-      basemap: filters.basemap || "gray-vector",
+      basemap: filters.basemap || "topo-vector",
       layers: [dsdLayer, pastFloodLayer, flood2025Layer, osmBuildingsLayer, pinLayer],
     });
 
@@ -153,6 +152,7 @@ const MapWidget = forwardRef(({ filters, onPointAnalysis }, ref) => {
       extent: SL_EXTENT,
       ui: { components: ["zoom", "compass"] },
     });
+    view.ui.padding = { top: 70, left: 15, right: 15, bottom: 15 };
     viewRef.current = view;
 
     view.when(() => {
@@ -161,17 +161,11 @@ const MapWidget = forwardRef(({ filters, onPointAnalysis }, ref) => {
       // ScaleBar
       view.ui.add(new ScaleBar({ view, unit: "metric", style: "line" }), "bottom-left");
 
-      // Legend expand
-      view.ui.add(new Expand({
-        view, content: new Legend({ view, style: "card" }),
-        expandIcon: "legend", expandTooltip: "Show Legend", expanded: false,
-      }), "bottom-right");
-
       // Basemap gallery expand
       view.ui.add(new Expand({
         view, content: new BasemapGallery({ view }),
         expandIcon: "basemap", expandTooltip: "Basemap Gallery", expanded: false,
-      }), "top-right");
+      }), "top-left");
     });
 
     return () => view.destroy();

@@ -2,12 +2,13 @@
 import { useState, useRef } from "react";
 import "./index.css";
 import MapWidget from "./components/MapWidget";
+import { FiAlertTriangle, FiAlertCircle, FiClock, FiCheckCircle } from "react-icons/fi";
 
 const RISK = {
-  both: { label: "Repeatedly Flooded", color: "#d83020", bg: "rgba(216,48,32,0.07)", border: "rgba(216,48,32,0.22)", icon: "🔴", desc: "High ongoing flood risk — affected in multiple periods." },
-  only2025: { label: "Flooded in 2025 Only", color: "#c87137", bg: "rgba(200,113,55,0.07)", border: "rgba(200,113,55,0.22)", icon: "🟠", desc: "Affected by November 2025 floods." },
-  onlyPast: { label: "Past Exposure Only", color: "#a07d00", bg: "rgba(160,125,0,0.07)", border: "rgba(160,125,0,0.22)", icon: "🟡", desc: "Historical flood exposure in 2016/2018." },
-  none: { label: "No Flood Record", color: "#288835", bg: "rgba(40,136,53,0.07)", border: "rgba(40,136,53,0.22)", icon: "🟢", desc: "Outside all recorded flood extents." },
+  both: { label: "Repeatedly Flooded", color: "#d83020", bg: "rgba(216,48,32,0.07)", border: "rgba(216,48,32,0.22)", icon: <FiAlertTriangle />, desc: "High ongoing flood risk — affected in multiple periods." },
+  only2025: { label: "Flooded in 2025 Only", color: "#c87137", bg: "rgba(200,113,55,0.07)", border: "rgba(200,113,55,0.22)", icon: <FiAlertCircle />, desc: "Affected by November 2025 floods." },
+  onlyPast: { label: "Past Exposure Only", color: "#a07d00", bg: "rgba(160,125,0,0.07)", border: "rgba(160,125,0,0.22)", icon: <FiClock />, desc: "Historical flood exposure in 2016/2018." },
+  none: { label: "No Flood Record", color: "#288835", bg: "rgba(40,136,53,0.07)", border: "rgba(40,136,53,0.22)", icon: <FiCheckCircle />, desc: "Outside all recorded flood extents." },
 };
 
 const LAYERS = [
@@ -26,7 +27,7 @@ export default function App() {
   const [filters, setFilters] = useState({
     showDsd: true, showFlood2025: true,
     showPastFlood: true, showOsmBuildings: true,
-    basemap: "gray-vector",
+    basemap: "topo-vector",
   });
 
   const handleFilter = (patch) => setFilters(p => ({ ...p, ...patch }));
@@ -149,9 +150,7 @@ export default function App() {
 
             {/* Big headline */}
             <h1 className="hero-headline">
-              Understand<br />
-              <em>Flood Risk</em><br />
-              Intelligently.
+              FairFirst Flood <em>Exposure</em>
             </h1>
 
             <p className="hero-sub">
@@ -187,7 +186,7 @@ export default function App() {
             </div>
 
             {/* Layer chips */}
-            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--muted)", marginBottom: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--muted)", marginBottom: 10 }}>
               Map Layers
             </div>
             <div className="layer-chips">
@@ -213,13 +212,13 @@ export default function App() {
               value={filters.basemap}
               onChange={e => handleFilter({ basemap: e.target.value })}
             >
-              <option value="gray-vector">🗺 Light Gray Canvas</option>
-              <option value="topo-vector">🏔 Topographic</option>
-              <option value="streets-navigation-vector">🛣 Streets Navigation</option>
-              <option value="hybrid">🛰 Hybrid (Satellite + Labels)</option>
-              <option value="satellite">🌍 Satellite</option>
-              <option value="osm">🗺 OpenStreetMap</option>
-              <option value="dark-gray-vector">🌑 Dark Gray Canvas</option>
+              <option value="gray-vector">Light Gray Canvas</option>
+              <option value="topo-vector">Topographic</option>
+              <option value="streets-navigation-vector">Streets Navigation</option>
+              <option value="hybrid">Hybrid (Satellite + Labels)</option>
+              <option value="satellite">Satellite</option>
+              <option value="osm">OpenStreetMap</option>
+              <option value="dark-gray-vector">Dark Gray Canvas</option>
             </select>
 
             {/* Stats */}
