@@ -16,8 +16,8 @@ import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import "@arcgis/core/assets/esri/themes/light/main.css";
 
 const DSD_URL = "https://services1.arcgis.com/tMAq108b7itjkui5/arcgis/rest/services/SL_DSD_codes/FeatureServer/0";
-const SL_FLOOD_2025_URL = "https://services1.arcgis.com/tMAq108b7itjkui5/arcgis/rest/services/Multisensors_20251126_20251202_FloodExtent_SriLanka/FeatureServer/1";
-const PAST_FLOOD_URL = "https://services1.arcgis.com/tMAq108b7itjkui5/arcgis/rest/services/Pastfood_AllLayers/FeatureServer/15";
+const SL_FLOOD_2025_URL = "https://services1.arcgis.com/tMAq108b7itjkui5/arcgis/rest/services/Multisensors_20251126_20251202_FloodExtent_SriLanka_moya/FeatureServer/31";
+const PAST_FLOOD_URL = "https://services1.arcgis.com/tMAq108b7itjkui5/arcgis/rest/services/Past_flood_events/FeatureServer/34";
 const OSM_BUILDINGS_URL = "https://services-ap1.arcgis.com/iA7fZQOnjY9D67Zx/arcgis/rest/services/OSM_AS_Buildings/FeatureServer/0";
 
 const SL_EXTENT = new Extent({
