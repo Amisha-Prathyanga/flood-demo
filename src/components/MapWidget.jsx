@@ -13,6 +13,7 @@ import ScaleBar from "@arcgis/core/widgets/ScaleBar";
 import Legend from "@arcgis/core/widgets/Legend";
 import Expand from "@arcgis/core/widgets/Expand";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
+import Fullscreen from "@arcgis/core/widgets/Fullscreen";
 import "@arcgis/core/assets/esri/themes/light/main.css";
 
 const DSD_URL = "https://services1.arcgis.com/tMAq108b7itjkui5/arcgis/rest/services/SL_DSD_codes/FeatureServer/0";
@@ -67,10 +68,14 @@ const MapWidget = forwardRef(({ filters, onPointAnalysis }, ref) => {
       mx: e.clientX, my: e.clientY,
       ox: rect.left - parent.left,
       oy: rect.top - parent.top,
+      isDragging: false,
     };
     const onMove = (ev) => {
       const dx = ev.clientX - dragging.current.mx;
       const dy = ev.clientY - dragging.current.my;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+        dragging.current.isDragging = true;
+      }
       setLegendPos({ left: dragging.current.ox + dx, top: dragging.current.oy + dy, right: "auto", bottom: "auto" });
     };
     const onUp = () => {
@@ -166,6 +171,12 @@ const MapWidget = forwardRef(({ filters, onPointAnalysis }, ref) => {
         view, content: new BasemapGallery({ view }),
         expandIcon: "basemap", expandTooltip: "Basemap Gallery", expanded: false,
       }), "top-left");
+
+      // Fullscreen widget
+      view.ui.add(new Fullscreen({ 
+        view, 
+        element: document.querySelector('.map-col') 
+      }), { position: "top-left", index: 0 });
     });
 
     return () => view.destroy();
@@ -192,9 +203,25 @@ const MapWidget = forwardRef(({ filters, onPointAnalysis }, ref) => {
 
       {/* Custom floating legend */}
       <div className="map-legend" style={legendPos}>
-        <div className="lg-header" onMouseDown={onLegendMouseDown}>
+        <div 
+          className="lg-header" 
+          onMouseDown={onLegendMouseDown}
+          onClick={() => {
+            if (!dragging.current?.isDragging) {
+              setLegendCollapsed(c => !c);
+            }
+          }}
+          style={{ cursor: "pointer" }}
+        >
           <span className="lg-title">⠿ Legend</span>
-          <button className="lg-toggle" onMouseDown={e => e.stopPropagation()} onClick={() => setLegendCollapsed(c => !c)}>
+          <button 
+            className="lg-toggle" 
+            onMouseDown={e => e.stopPropagation()} 
+            onClick={e => {
+              e.stopPropagation();
+              setLegendCollapsed(c => !c);
+            }}
+          >
             {legendCollapsed ? "▲" : "▼"}
           </button>
         </div>

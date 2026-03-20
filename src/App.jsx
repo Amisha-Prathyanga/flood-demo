@@ -109,7 +109,7 @@ export default function App() {
                       }}>
                         <span className="rp-pill-label">Flood 2025 (Nov)</span>
                         <span className="rp-pill-val" style={{ color: pointAnalysis.flood2025 ? "#d83020" : "#288835" }}>
-                          {pointAnalysis.flood2025 ? "✓ Affected" : "✗ Clear"}
+                          {pointAnalysis.flood2025 ? "✓ Affected" : "✗ Not Affected"}
                         </span>
                       </div>
                       <div className="rp-pill" style={{
@@ -118,7 +118,7 @@ export default function App() {
                       }}>
                         <span className="rp-pill-label">Past Events (2016/18)</span>
                         <span className="rp-pill-val" style={{ color: pointAnalysis.pastFlood ? "#d83020" : "#288835" }}>
-                          {pointAnalysis.pastFlood ? "✓ Affected" : "✗ Clear"}
+                          {pointAnalysis.pastFlood ? "✓ Affected" : "✗ Not Affected"}
                         </span>
                       </div>
                     </div>
