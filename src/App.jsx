@@ -56,7 +56,7 @@ export default function App() {
       {/* ── TOPBAR floats over everything ── */}
       <header className="topbar">
         <div className="topbar-brand">
-          <img src="/src/assets/images/logo.jpeg" alt="FairFirst" className="topbar-logo" />
+          <img src="/public/logo.jpeg" alt="FairFirst" className="topbar-logo" />
           <span className="topbar-name">FairFirst</span>
         </div>
 
