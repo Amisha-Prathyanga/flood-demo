@@ -56,8 +56,8 @@ export default function App() {
       {/* ── TOPBAR floats over everything ── */}
       <header className="topbar">
         <div className="topbar-brand">
-          <img src="/public/logo.jpeg" alt="FairFirst" className="topbar-logo" />
-          <span className="topbar-name">FairFirst</span>
+          {/*<img src="/public/logo.jpeg" alt="FairFirst" className="topbar-logo" />*/}
+          {/*<span className="topbar-name">FairFirst</span>*/}
         </div>
 
         <div className="topbar-spacer" />
@@ -150,7 +150,7 @@ export default function App() {
 
             {/* Big headline */}
             <h1 className="hero-headline">
-              FairFirst Flood <em>Exposure</em>
+              Flood <em>Exposure</em>
             </h1>
 
             <p className="hero-sub">
